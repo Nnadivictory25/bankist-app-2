@@ -181,13 +181,37 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+
+const startLogOutTimer = () => {
+  // set time to 5 minutes
+  let time = 120
+
+  const tick = () => {
+      const min = String(Math.trunc(time / 60)).padStart(2, 0);
+      const sec = String(Math.trunc(time % 60)).padStart(2, 0);
+      //  in each call, print the remaining time to the UI
+      labelTimer.textContent = `${min}:${sec}`
+  
+  
+      // when 0 seconds,stop timer
+      if (time === 0) { 
+        clearInterval(timer)
+        window.location.reload()
+      }
+    
+        // decrease 1s
+        time--
+  }
+
+  tick()
+  // call the timer every second
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
 ///////////////////////////////////////
 // Event handlers
-let currentAccount;
+let currentAccount, timer;
 
-currentAccount = account1
-updateUI(currentAccount)
-containerApp.style.opacity = 1;
 
 
 
@@ -226,6 +250,8 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
+    if (timer) clearInterval(timer)
+    timer = startLogOutTimer()
     // Update UI 
     updateUI(currentAccount);
   }
@@ -255,6 +281,10 @@ btnTransfer.addEventListener('click', function (e) {
 
     // Update UI
     updateUI(currentAccount);
+
+    // Reset timer
+    clearInterval(timer)
+    timer = startLogOutTimer()
   }
 });
 
@@ -265,15 +295,20 @@ btnLoan.addEventListener('click', function (e) {
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
     // Add movement
-    currentAccount.movements.push(amount);
+    setTimeout(() => {
+      currentAccount.movements.push(amount);
 
-    // Add loan date
-    currentAccount.movementsDates.push(new Date().toISOString())
-
-    // Update UI
-    updateUI(currentAccount);
+      // Add loan date
+      currentAccount.movementsDates.push(new Date().toISOString())
+  
+      // Update UI
+      updateUI(currentAccount);
+    }, 2500);
   }
   inputLoanAmount.value = '';
+
+  if (timer) clearInterval(timer)
+  timer = startLogOutTimer()
 });
 
 btnClose.addEventListener('click', function (e) {
@@ -319,3 +354,4 @@ const calcDaysPassed = (date1, date2) => Math.abs(date2 - date1) / (1000 * 60 * 
 
 const days1 = calcDaysPassed(new Date(2023, 1, 1), new Date(2023, 1, 22))
 console.log(days1)
+
